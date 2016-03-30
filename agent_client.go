@@ -8,8 +8,7 @@ import (
 	"net"
 )
 
-func main() {
-	
+func parseServerIP() net.IP {
 	if len(os.Args) != 2{
 		fmt.Fprintf(os.Stderr, "Usage: %s ip-addr\n", os.Args[0])
 		os.Exit(0)
@@ -22,7 +21,14 @@ func main() {
 		os.Exit(0)
 	} else {
 		fmt.Println("Connect Address is", addr)	
-	}
+	}	
+	
+	//fmt.Println("addr type is", addr.Type())
+	return addr
+}
+
+func main() {
+	serverIP := parseServerIP()
 	
 	fmt.Println("Connect to server")
 	
@@ -32,11 +38,10 @@ func main() {
 		os.Exit(1)	
 	}
 	
-	peer_addr := "tcp://" + addr.String() + ":5555"
+	peer_addr := "tcp://" + serverIP.String() + ":5555"
 	fmt.Println("peer_addr is", peer_addr)
 	
 	requester.Connect(peer_addr)
-	//requester.Connect("tcp://localhost:5555")
 	
 	for i := 1; i < 10; i++ {
 		msg := fmt.Sprintf("Hello %d", i)
