@@ -18,10 +18,10 @@ func main() {
 	
 	requester.Connect("tcp://localhost:5555")
 	
-	for i := 1; i < 10; ++i {
+	for i := 1; i < 10; i++ {
 		msg := fmt.Sprintf("Hello %d", i)
 		fmt.Println("Send :", msg)
-		requester.Send(msg)
+		requester.Send(msg, 0)
 		
 		//wait for reply
 		reply_msg, _ := requester.Recv(0)
