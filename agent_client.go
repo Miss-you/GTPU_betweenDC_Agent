@@ -8,6 +8,13 @@ import (
 	"net"
 )
 
+func checkError(err error){
+	if 	err != nil {
+		fmt.Println("Error: %s", err.Error())
+		os.Exit(1)	
+	}
+}
+
 func parseServerIP() net.IP {
 	if len(os.Args) != 2{
 		fmt.Fprintf(os.Stderr, "Usage: %s ip-addr\n", os.Args[0])
@@ -23,33 +30,69 @@ func parseServerIP() net.IP {
 		fmt.Println("Connect Address is", addr)	
 	}	
 	
-	//fmt.Println("addr type is", addr.Type())
 	return addr
 }
 
-func main() {
-	serverIP := parseServerIP()
-	
+func connectZMQServer(serverIP net.IP) *zmq.Socket {
 	fmt.Println("Connect to server")
 	
 	requester, err := zmq.NewSocket(zmq.REQ)
-	defer requester.Close()
-	if err != nil {
-		os.Exit(1)	
-	}
+	checkError(err)
 	
 	peer_addr := "tcp://" + serverIP.String() + ":5555"
 	fmt.Println("peer_addr is", peer_addr)
 	
 	requester.Connect(peer_addr)
 	
-	for i := 1; i < 10; i++ {
-		msg := fmt.Sprintf("Hello %d", i)
-		fmt.Println("Send :", msg)
-		requester.Send(msg, 0)
+	return requester
+}
+
+func initUDPServer() *net.UDPConn{
+	udp_addr, err := net.ResolveUDPAddr("udp", ":11110")
+	checkError(err)	
+	
+	conn, err := net.ListenUDP("udp", udp_addr)
+	checkError(err)
+	
+	return conn
+}
+
+func recvUDPMsg(ZMQ_requester *zmq.Socket, conn *net.UDPConn) {
+	var buf [20]byte
+	
+	for {
+		n, _, err := conn.ReadFromUDP(buf[0:])
+		if err != nil {
+			return	
+		}
 		
-		//wait for reply
-		reply_msg, _ := requester.Recv(0)
-		fmt.Println("Recv:", reply_msg)	
+		str_msg := string(buf[0:n])
+		fmt.Println("recvUDP msg, msg is ", str_msg)
+		
+		ZMQ_requester.Send(str_msg, 0)
 	}
+}
+
+func main() {
+	server_IP := parseServerIP()
+	ZMQ_requester := connectZMQServer(server_IP)
+	defer ZMQ_requester.Close()
+	
+	UDP_conn := initUDPServer()
+	defer UDP_conn.Close()
+	
+	go recvUDPMsg(ZMQ_requester, UDP_conn)
+/*	
+	for {
+		reply_msg, err := ZMQ_requester.Recv(0)
+		if err != nil {
+			fmt.Println("Recv:", reply_msg)	
+		}
+	}
+	*/
+	
+	reactor := zmq.NewReactor()
+    reactor.AddSocket(ZMQ_requester, zmq.POLLIN, socket1_handler)
+
+    reactor.Run(-1)
 }
