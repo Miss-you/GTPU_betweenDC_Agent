@@ -67,7 +67,7 @@ func recvUDPMsg(ZMQ_requester *zmq.Socket, conn *net.UDPConn) {
 		}
 		
 		str_msg := string(buf[0:n])
-		fmt.Println("recvUDP msg, msg is ", str_msg)
+		fmt.Println("recvUDP msg, msg is", str_msg)
 		
 		ZMQ_requester.Send(str_msg, 0)
 	}
@@ -90,9 +90,21 @@ func main() {
 		}
 	}
 	*/
-	
-	reactor := zmq.NewReactor()
-    reactor.AddSocket(ZMQ_requester, zmq.POLLIN, socket1_handler)
-
-    reactor.Run(-1)
+    
+    poller := zmq.NewPoller()
+    poller.Add(ZMQ_requester, zmq.POLLIN)
+    //poller.Add(UDP_conn, zmq.POLLIN)
+    
+    for {
+    	sockets, _ := poller.Poll(-1) 
+    	for _, socket := range sockets {
+    		switch s := socket.Socket; s {
+    		case ZMQ_requester:
+    			reply_msg, err := s.Recv(0)
+    			if err == nil {
+    				fmt.Println("Recv:", reply_msg)	
+    			}	
+    		}
+    	}	
+    }
 }

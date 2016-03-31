@@ -24,6 +24,8 @@ func main() {
 		time.Sleep(time.Second)
 		
 		reply := "World"
-		response.Send(reply, 0) 	
+		response.Send(reply, 0)
+		
+		fmt.Println("response", reply) 	
 	}
 }
