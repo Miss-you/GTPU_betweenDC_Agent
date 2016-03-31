@@ -5,7 +5,7 @@ import (
 
 	"os"
 	"fmt"
-	"time"
+//	"time"
 )
 
 func main() {
@@ -21,7 +21,7 @@ func main() {
 		msg, _ := response.Recv(0)
 		fmt.Println("Recv", msg)
 		
-		time.Sleep(time.Second)
+//		time.Sleep(time.Second)
 		
 		reply := "World"
 		response.Send(reply, 0)

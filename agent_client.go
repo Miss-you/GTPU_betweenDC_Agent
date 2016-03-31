@@ -82,14 +82,6 @@ func main() {
 	defer UDP_conn.Close()
 	
 	go recvUDPMsg(ZMQ_requester, UDP_conn)
-/*	
-	for {
-		reply_msg, err := ZMQ_requester.Recv(0)
-		if err != nil {
-			fmt.Println("Recv:", reply_msg)	
-		}
-	}
-	*/
     
     poller := zmq.NewPoller()
     poller.Add(ZMQ_requester, zmq.POLLIN)
