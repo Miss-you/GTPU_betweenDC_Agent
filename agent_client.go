@@ -81,11 +81,10 @@ func main() {
 	UDP_conn := initUDPServer()
 	defer UDP_conn.Close()
 	
-	go recvUDPMsg(ZMQ_requester, UDP_conn)
-    
     poller := zmq.NewPoller()
     poller.Add(ZMQ_requester, zmq.POLLIN)
-    //poller.Add(UDP_conn, zmq.POLLIN)
+    
+    go recvUDPMsg(ZMQ_requester, UDP_conn)
     
     for {
     	sockets, _ := poller.Poll(-1) 
